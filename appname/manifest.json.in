@@ -1,0 +1,15 @@
+{
+    "name": "appname.neus",
+    "description": "A short description of your app",
+    "architecture": "$ENV{ARCH}",
+    "title": "Recetario",
+    "hooks": {
+        "appname": {
+            "apparmor": "appname.apparmor",
+            "desktop":  "appname.desktop"
+        }
+    },
+    "version": "1.0.0",
+    "maintainer": "Your FullName <email@domain.org>",
+    "framework" : "$ENV{CLICK_FRAMEWORK}"
+}

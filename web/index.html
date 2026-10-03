@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recetario</title>
+<style>
+:root{--bg:#faf7f2;--card:#fff;--text:#2b2623;--muted:#7a716a;--line:#e6dfd6;--accent:#c4562b;--accent-text:#fff;--ok:#2f7d4f;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1a18;--card:#282421;--text:#f1ece6;--muted:#a79d93;--line:#3b3631;--accent:#e0794d;--accent-text:#1d1a18;--ok:#6fcf97;--bad:#f2867f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:1rem;padding:.6rem 1rem;flex-wrap:wrap}
+header h1{font-size:1.25rem;margin:0}
+nav{display:flex;gap:.25rem;flex-wrap:wrap}
+nav button{background:none;border:0;color:var(--muted);font:inherit;padding:.4rem .8rem;border-radius:.5rem;cursor:pointer}
+nav button.on{background:var(--accent);color:var(--accent-text)}
+main{max-width:1100px;margin:0 auto;padding:1rem}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--card);border:1px solid var(--line);border-radius:.5rem;padding:.5rem .6rem;width:100%}
+textarea{min-height:7rem;resize:vertical}
+.btn{background:var(--accent);color:var(--accent-text);border:0;border-radius:.5rem;padding:.5rem .9rem;cursor:pointer}
+.btn.sec{background:none;color:var(--text);border:1px solid var(--line)}
+.btn.bad{background:none;color:var(--bad);border:1px solid var(--bad)}
+.btn.small{padding:.25rem .55rem;font-size:.9rem}
+.bar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.bar .grow{flex:1;min-width:10rem}
+.bar select{width:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:.75rem;overflow:hidden;cursor:pointer}
+.card:hover{border-color:var(--accent)}
+.card img,.card .noimg{width:100%;height:120px;object-fit:cover;display:block;background:var(--line)}
+.card .noimg{display:flex;align-items:center;justify-content:center;font-size:2.2rem}
+.card .body{padding:.6rem .75rem}
+.card .name{font-weight:600}
+.muted{color:var(--muted);font-size:.9rem}
+.empty{text-align:center;color:var(--muted);padding:3rem 1rem}
+table.menu{width:100%;border-collapse:collapse;background:var(--card);border-radius:.75rem;overflow:hidden}
+.menu th,.menu td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:middle}
+.menu th{background:var(--bg);font-weight:600}
+.menu td.day{width:9rem;font-weight:600}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:.4rem}
+.slot a{cursor:pointer;color:var(--text)}
+.slot a:hover{color:var(--accent)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem}
+.add{background:none;border:1px dashed var(--line);border-radius:.4rem;color:var(--muted);width:100%;padding:.3rem;cursor:pointer}
+.add:hover{border-color:var(--accent);color:var(--accent)}
+ul.shop{list-style:none;padding:0;margin:0;background:var(--card);border:1px solid var(--line);border-radius:.75rem}
+ul.shop li{padding:.5rem .8rem;border-bottom:1px solid var(--line)}
+ul.shop li:last-child{border-bottom:0}
+ul.shop label{display:flex;gap:.6rem;align-items:flex-start;cursor:pointer}
+ul.shop input{width:auto;margin-top:.3rem}
+ul.shop .done span.t{text-decoration:line-through;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow:auto}
+.modal.hidden{display:none}
+.box{background:var(--card);border-radius:.9rem;max-width:680px;width:100%;padding:1.1rem 1.25rem}
+.box h2{margin:.1rem 0 .6rem;font-size:1.3rem}
+.box img.hero{width:100%;max-height:260px;object-fit:cover;border-radius:.6rem;margin-bottom:.6rem}
+.box h3{margin:1rem 0 .3rem;font-size:1.05rem}
+.box ol,.box ul{padding-left:1.3rem;margin:.2rem 0}
+.box li{margin:.25rem 0}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+.row.end{justify-content:flex-end}
+.field{margin:.6rem 0}
+.field label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:.2rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.tabs2{display:flex;gap:.25rem;margin-bottom:.6rem}
+.pick{max-height:50vh;overflow:auto;margin-top:.6rem;border:1px solid var(--line);border-radius:.5rem}
+.pick div{padding:.5rem .7rem;border-bottom:1px solid var(--line);cursor:pointer}
+.pick div:hover{background:var(--bg)}
+#toast{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:.6rem 1rem;border-radius:.6rem;z-index:30;display:none;max-width:90vw}
+#toast.err{background:var(--bad);color:#fff}
+@media print{header,.bar,.row,.x,.add{display:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍲 Recetario</h1>
+  <nav id="tabs">
+    <button data-tab="recetas">Recetas</button>
+    <button data-tab="menu">Menú semanal</button>
+    <button data-tab="compra">Lista de la compra</button>
+    <button data-tab="ajustes">Ajustes</button>
+  </nav>
+</header>
+<main id="view"></main>
+<div id="modal" class="modal hidden"><div class="box" id="box"></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const MEALS = [['lunch','Almuerzo'],['dinner','Cena']];
+const COURSES = [['primero','Primero'],['segundo','Segundo'],['postre','Postre'],['unico','Plato único']];
+const state = {tab:'recetas', week:null, q:'', category:'', robot:''};
+const $ = (s, r = document) => r.querySelector(s);
+
+/* ---------- utilidades ---------- */
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid !== null && kid !== undefined && kid !== false) e.append(kid.nodeType ? kid : String(kid));
+  }
+  return e;
+}
+
+async function api(path, body) {
+  const opt = body === undefined ? {} : {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Recetario': '1'},
+    body: JSON.stringify(body)
+  };
+  const res = await fetch(path, opt);
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* sin cuerpo */ }
+  if (!res.ok) throw new Error((data && data.error) || ('Error ' + res.status));
+  return data;
+}
+
+let toastTimer;
+function toast(msg, isErr) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = isErr ? 'err' : '';
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.display = 'none'; }, isErr ? 6000 : 2500);
+}
+const fail = e => toast(e.message || String(e), true);
+
+function openModal(...content) {
+  const box = $('#box');
+  box.replaceChildren(...content.flat().filter(x => x !== null && x !== undefined && x !== false));
+  $('#modal').classList.remove('hidden');
+}
+function closeModal() { $('#modal').classList.add('hidden'); }
+$('#modal').addEventListener('mousedown', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function mins(n) {
+  if (!n) return '';
+  const h = Math.floor(n / 60), m = n % 60;
+  return (h ? h + ' h ' : '') + (m ? m + ' min' : '');
+}
+function shiftWeek(week, days) {
+  const d = new Date(week + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+function todayMonday() {
+  const d = new Date();
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function weekLabel(week) {
+  const f = s => new Date(s + 'T00:00:00').toLocaleDateString('es-ES', {day:'numeric', month:'short'});
+  return 'Semana del ' + f(week) + ' al ' + f(shiftWeek(week, 6));
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('Copiado'); }
+  catch (e) { toast('No se pudo copiar automáticamente', true); }
+}
+
+/* ---------- navegación ---------- */
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === state.tab));
+  ({recetas: viewRecetas, menu: viewMenu, compra: viewCompra, ajustes: viewAjustes})[state.tab]().catch(fail);
+}
+$('#tabs').addEventListener('click', e => {
+  if (e.target.dataset.tab) { state.tab = e.target.dataset.tab; render(); }
+});
+
+/* ---------- recetas ---------- */
+async function viewRecetas() {
+  const [cats, robots] = await Promise.all([api('/api/categories'), api('/api/robots')]);
+  const q = el('input', {type:'search', class:'grow', placeholder:'Buscar por nombre, ingrediente…', value: state.q});
+  const sel = el('select', {}, el('option', {value:''}, 'Todas las categorías'),
+    cats.filter(c => c.name).map(c => el('option', {value:c.name}, c.name + ' (' + c.count + ')')));
+  sel.value = state.category;
+  const selRobot = el('select', {}, el('option', {value:''}, 'Todos los robots'),
+    robots.map(r => el('option', {value:r}, r)));
+  selRobot.value = state.robot;
+  const grid = el('div', {class:'grid'});
+  const refresh = async () => {
+    const list = await api('/api/recipes?q=' + encodeURIComponent(state.q) + '&category=' + encodeURIComponent(state.category) + '&robot=' + encodeURIComponent(state.robot));
+    grid.replaceChildren(...list.map(recipeCard));
+    if (!list.length) grid.replaceChildren(el('div', {class:'empty'},
+      state.q || state.category || state.robot ? 'No hay recetas con ese filtro.' : 'Todavía no hay recetas. Pulsa «＋ Añadir receta».'));
+  };
+  let timer;
+  q.addEventListener('input', () => { state.q = q.value; clearTimeout(timer); timer = setTimeout(() => refresh().catch(fail), 200); });
+  sel.addEventListener('change', () => { state.category = sel.value; refresh().catch(fail); });
+  selRobot.addEventListener('change', () => { state.robot = selRobot.value; refresh().catch(fail); });
+  $('#view').replaceChildren(
+    el('div', {class:'bar'}, q, sel, selRobot, el('button', {class:'btn', onclick: () => openAdd()}, '＋ Añadir receta')),
+    grid);
+  await refresh();
+}
+
+function recipeCard(r) {
+  const meta = [r.category, r.robot, mins(r.total_minutes)].filter(Boolean).join(' · ');
+  return el('div', {class:'card', onclick: () => openRecipe(r.id)},
+    r.image_file ? el('img', {src:'/images/' + encodeURIComponent(r.image_file), loading:'lazy', alt:''}) : el('div', {class:'noimg'}, '🍽️'),
+    el('div', {class:'body'}, el('div', {class:'name'}, r.name), el('div', {class:'muted'}, meta || '\u00a0')));
+}
+
+async function openRecipe(id) {
+  const r = await api('/api/recipe/' + id);
+  const meta = [r.category, r.robot, mins(r.total_minutes), r.servings ? r.servings + ' raciones' : ''].filter(Boolean).join(' · ');
+  openModal(
+    r.image_file ? el('img', {class:'hero', src:'/images/' + encodeURIComponent(r.image_file), alt:''}) : null,
+    el('h2', {}, r.name),
+    el('div', {class:'muted'}, meta),
+    r.description ? el('p', {}, r.description) : null,
+    el('h3', {}, 'Ingredientes'),
+    el('ul', {}, (r.ingredients || []).map(i => el('li', {}, i))),
+    el('h3', {}, 'Preparación'),
+    el('ol', {}, (r.instructions || []).map(s => el('li', {}, s))),
+    r.notes ? [el('h3', {}, 'Notas'), el('p', {}, r.notes)] : null,
+    /^https?:\/\//.test(r.source_url || '') ? el('p', {class:'muted'}, 'Origen: ', el('a', {href:r.source_url, target:'_blank', rel:'noopener noreferrer'}, r.source_url)) : null,
+    el('div', {class:'row'},
+      el('button', {class:'btn', onclick: () => openAddToMenu(r)}, '📅 Añadir al menú'),
+      el('button', {class:'btn sec', onclick: () => openForm(r)}, 'Editar'),
+      el('button', {class:'btn bad', onclick: async () => {
+        if (!confirm('¿Borrar «' + r.name + '»? También se quitará del menú.')) return;
+        try { await api('/api/recipe/' + r.id + '/delete', {}); closeModal(); toast('Receta borrada'); render(); } catch (e) { fail(e); }
+      }}, 'Borrar'),
+      el('button', {class:'btn sec', onclick: closeModal}, 'Cerrar')));
+}
+
+function openAdd() {
+  const url = el('input', {type:'text', placeholder:'https://…  (dirección de la receta)'});
+  const go = async () => {
+    btn.disabled = true; btn.textContent = 'Importando…';
+    try {
+      const r = await api('/api/import', {url: url.value});
+      toast('Importada: ' + r.name); render(); openRecipe(r.id);
+    } catch (e) { fail(e); btn.disabled = false; btn.textContent = 'Importar'; }
+  };
+  url.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  const btn = el('button', {class:'btn', onclick: go}, 'Importar');
+  openModal(el('h2', {}, 'Añadir receta'),
+    el('div', {class:'field'}, el('label', {}, 'Desde una web'), url),
+    el('div', {class:'row'}, btn,
+      el('button', {class:'btn sec', onclick: () => openForm(null)}, 'Escribirla a mano'),
+      el('button', {class:'btn sec', onclick: closeModal}, 'Cancelar')),
+    el('p', {class:'muted'}, 'Si una web no se puede leer, copia el texto de la receta y pégalo en «Escribirla a mano».'));
+  url.focus();
+}
+
+async function openForm(r) {
+  const [cats, robots] = await Promise.all([api('/api/categories'), api('/api/robots')]);
+  const f = {
+    name: el('input', {type:'text', value: r ? r.name : ''}),
+    category: el('input', {type:'text', list:'catlist', value: r ? (r.category || '') : ''}),
+    robot: el('select', {}, el('option', {value:''}, '(sin robot)'),
+      robots.map(rb => el('option', {value:rb, selected: r && r.robot === rb}, rb))),
+    servings: el('input', {type:'number', min:'1', value: r && r.servings ? r.servings : ''}),
+    total: el('input', {type:'number', min:'1', value: r && r.total_minutes ? r.total_minutes : ''}),
+    ing: el('textarea', {}, r ? (r.ingredients || []).join('\n') : ''),
+    steps: el('textarea', {}, r ? (r.instructions || []).join('\n') : ''),
+    notes: el('textarea', {style:'min-height:4rem'}, r ? (r.notes || '') : '')
+  };
+  const field = (label, node) => el('div', {class:'field'}, el('label', {}, label), node);
+  openModal(el('h2', {}, r ? 'Editar receta' : 'Nueva receta'),
+    field('Nombre *', f.name),
+    el('div', {class:'two'}, field('Categoría', f.category), field('Robot de cocina', f.robot)),
+    el('div', {class:'two'}, field('Raciones', f.servings), field('Tiempo total (minutos)', f.total)),
+    el('datalist', {id:'catlist'}, cats.filter(c => c.name).map(c => el('option', {value:c.name}))),
+    field('Ingredientes (uno por línea)', f.ing),
+    field('Pasos (uno por línea)', f.steps),
+    field('Notas', f.notes),
+    el('div', {class:'row end'},
+      el('button', {class:'btn sec', onclick: closeModal}, 'Cancelar'),
+      el('button', {class:'btn', onclick: async () => {
+        const body = {name: f.name.value, category: f.category.value, robot: f.robot.value, servings: f.servings.value,
+          total_minutes: f.total.value, ingredients: f.ing.value, instructions: f.steps.value, notes: f.notes.value};
+        try {
+          const saved = await api(r ? '/api/recipe/' + r.id : '/api/recipe', body);
+          closeModal(); toast('Guardada'); render(); openRecipe(saved.id);
+        } catch (e) { fail(e); }
+      }}, 'Guardar')));
+  f.name.focus();
+}
+
+/* ---------- menú semanal ---------- */
+async function loadMenu() {
+  const m = await api('/api/menu' + (state.week ? '?week=' + state.week : ''));
+  state.week = m.week;
+  return m;
+}
+function weekNav(after) {
+  const go = async days => { state.week = shiftWeek(state.week, days); after(); };
+  return el('div', {class:'bar'},
+    el('button', {class:'btn sec', onclick: () => go(-7)}, '‹'),
+    el('strong', {}, weekLabel(state.week)),
+    el('button', {class:'btn sec', onclick: () => go(7)}, '›'),
+    el('button', {class:'btn sec small', onclick: () => { state.week = todayMonday(); after(); }}, 'Hoy'));
+}
+
+async function viewMenu() {
+  const m = await loadMenu();
+  const rows = m.days.map(d => el('tr', {},
+    el('td', {class:'day'}, d.name, el('div', {class:'muted'}, new Date(d.date + 'T00:00:00').toLocaleDateString('es-ES', {day:'numeric', month:'short'}))),
+    MEALS.map(([key]) => {
+      const dishes = d.meals[key] || {};
+      return el('td', {}, COURSES.map(([ckey, clabel]) => {
+        const r = dishes[ckey];
+        return r
+          ? el('div', {class:'slot'},
+              el('span', {}, el('span', {class:'muted'}, clabel + ': '), el('a', {onclick: () => openRecipe(r.id)}, r.name)),
+              el('button', {class:'x', title:'Quitar', onclick: async () => {
+                try { await api('/api/menu/clear', {week: m.week, day: d.index, meal: key, course: ckey}); render(); } catch (e) { fail(e); }
+              }}, '✕'))
+          : el('button', {class:'add', onclick: () => pickRecipe(async rec => {
+              await api('/api/menu/set', {week: m.week, day: d.index, meal: key, recipe_id: rec.id, course: ckey}); render();
+            })}, '＋ ' + clabel);
+      }));
+    })));
+  $('#view').replaceChildren(
+    weekNav(render),
+    el('table', {class:'menu'}, el('thead', {}, el('tr', {}, el('th', {}, 'Día'), MEALS.map(([, n]) => el('th', {}, n)))), el('tbody', {}, rows)),
+    el('div', {class:'row'},
+      el('button', {class:'btn sec', onclick: () => api('/api/menu_text?week=' + m.week).then(t => copyText(t.text)).catch(fail)}, '📋 Copiar menú'),
+      el('button', {class:'btn sec', onclick: async () => {
+        try { await api('/api/menu/copy', {src: m.week, dst: shiftWeek(m.week, 7)}); state.week = shiftWeek(m.week, 7); toast('Copiado a la semana siguiente'); render(); } catch (e) { fail(e); }
+      }}, 'Copiar a la semana siguiente'),
+      el('button', {class:'btn bad', onclick: async () => {
+        if (!confirm('¿Vaciar esta semana?')) return;
+        try { await api('/api/menu/clear_week', {week: m.week}); render(); } catch (e) { fail(e); }
+      }}, 'Vaciar semana'),
+      el('button', {class:'btn sec', onclick: () => window.print()}, '🖨️ Imprimir')));
+}
+
+async function pickRecipe(onPick) {
+  const q = el('input', {type:'search', placeholder:'Buscar receta…'});
+  const list = el('div', {class:'pick'});
+  const refresh = async () => {
+    const items = await api('/api/recipes?q=' + encodeURIComponent(q.value));
+    list.replaceChildren(...(items.length ? items.map(r => el('div', {onclick: async () => {
+      try { await onPick(r); closeModal(); } catch (e) { fail(e); }
+    }}, r.name, el('span', {class:'muted'}, (r.category ? '  · ' + r.category : '') + (r.robot ? ' · ' + r.robot : '')))) : [el('div', {class:'muted'}, 'No hay recetas.')]));
+  };
+  q.addEventListener('input', () => refresh().catch(fail));
+  openModal(el('h2', {}, 'Elige una receta'), q, list,
+    el('div', {class:'row end'}, el('button', {class:'btn sec', onclick: closeModal}, 'Cancelar')));
+  q.focus();
+  await refresh();
+}
+
+async function openAddToMenu(r) {
+  const m = await loadMenu();
+  const week = el('select', {}, [-7, 0, 7, 14].map(off => {
+    const w = shiftWeek(m.week, off);
+    return el('option', {value:w, selected: off === 0}, weekLabel(w));
+  }));
+  const day = el('select', {}, DAYS.map((d, i) => el('option', {value:i}, d)));
+  const meal = el('select', {}, MEALS.map(([k, n]) => el('option', {value:k}, n)));
+  const course = el('select', {}, COURSES.map(([k, n]) => el('option', {value:k, selected: k === 'unico'}, n)));
+  openModal(el('h2', {}, 'Añadir «' + r.name + '» al menú'),
+    el('div', {class:'field'}, el('label', {}, 'Semana'), week),
+    el('div', {class:'two'},
+      el('div', {class:'field'}, el('label', {}, 'Día'), day),
+      el('div', {class:'field'}, el('label', {}, 'Comida'), meal)),
+    el('div', {class:'field'}, el('label', {}, 'Plato'), course),
+    el('div', {class:'row end'},
+      el('button', {class:'btn sec', onclick: closeModal}, 'Cancelar'),
+      el('button', {class:'btn', onclick: async () => {
+        try {
+          await api('/api/menu/set', {week: week.value, day: Number(day.value), meal: meal.value, recipe_id: r.id, course: course.value});
+          state.week = week.value; closeModal(); toast('Añadida al menú'); if (state.tab === 'menu') render();
+        } catch (e) { fail(e); }
+      }}, 'Añadir')));
+}
+
+/* ---------- lista de la compra ---------- */
+async function viewCompra() {
+  if (!state.week) await loadMenu();
+  const res = await api('/api/shopping?week=' + state.week);
+  const ul = el('ul', {class:'shop'}, res.items.map(i => {
+    const cb = el('input', {type:'checkbox'});
+    const li = el('li', {}, el('label', {}, cb, el('span', {}, el('span', {class:'t'}, i.text),
+      i.recipes.length ? el('div', {class:'muted'}, i.recipes.join(', ')) : null)));
+    cb.addEventListener('change', () => li.classList.toggle('done', cb.checked));
+    return li;
+  }));
+  $('#view').replaceChildren(
+    weekNav(render),
+    res.items.length ? ul : el('div', {class:'empty'}, 'No hay recetas en el menú de esta semana.'),
+    res.items.length ? el('div', {class:'row'},
+      el('button', {class:'btn sec', onclick: () => copyText('Lista de la compra\n\n' + res.items.map(i => '- ' + i.text).join('\n'))}, '📋 Copiar lista'),
+      el('button', {class:'btn sec', onclick: () => window.print()}, '🖨️ Imprimir')) : null);
+}
+
+/* ---------- ajustes ---------- */
+async function viewAjustes() {
+  const s = await api('/api/settings');
+  const robotsList = await api('/api/robots');
+  const folder = el('input', {type:'text', placeholder:'/home/tu_usuario/Drive/Recetas', value: s.sync_folder || ''});
+  const out = el('p', {class:'muted'});
+  $('#view').replaceChildren(
+    el('h2', {}, 'Ajustes'),
+    el('p', {}, 'Tus recetas se guardan en: ', el('code', {}, s.data_dir)),
+    el('div', {class:'field'}, el('label', {}, 'Carpeta de copia (por ejemplo, una carpeta sincronizada con Drive o la de la tablet)'), folder),
+    el('div', {class:'row'},
+      el('button', {class:'btn sec', onclick: async () => {
+        try { await api('/api/settings', {sync_folder: folder.value}); toast('Guardado'); } catch (e) { fail(e); }
+      }}, 'Guardar carpeta'),
+      el('button', {class:'btn', onclick: async () => {
+        try {
+          await api('/api/settings', {sync_folder: folder.value});
+          const r = await api('/api/sync', {});
+          out.textContent = 'Listo: ' + r.recipes + ' recetas en total (' + r.added + ' nuevas traídas de la carpeta, ' + r.removed + ' quitadas).';
+          toast('Sincronizado');
+        } catch (e) { fail(e); }
+      }}, '🔄 Sincronizar ahora')),
+    out,
+    el('p', {class:'muted'}, 'Sincronizar fusiona los cambios: lo más reciente gana y lo que borras en un sitio se borra en el otro.'),
+    el('hr'),
+    el('h3', {}, 'Robots de cocina'),
+    el('p', {class:'muted'}, 'Estos robots se usan para clasificar las recetas. Puedes añadir, renombrar o borrar.'),
+    el('div', {id:'robotList'}),
+    el('div', {class:'bar'}, el('input', {type:'text', id:'newRobot', class:'grow', placeholder:'Nuevo robot (ej. Thermomix)'}),
+      el('button', {class:'btn', onclick: async () => {
+        try { await api('/api/robot/add', {name: $('#newRobot').value}); toast('Robot añadido'); viewAjustes(); } catch (e) { fail(e); }
+      }}, 'Añadir')),
+    el('hr'),
+    el('button', {class:'btn bad', onclick: async () => {
+      try { await api('/api/quit', {}); document.body.replaceChildren(el('main', {}, el('div', {class:'empty'}, 'Recetario se ha cerrado. Ya puedes cerrar esta pestaña.'))); } catch (e) { fail(e); }
+    }}, 'Cerrar Recetario'));
+  const board = $('#robotList');
+  board.replaceChildren(...(robotsList.length ? robotsList.map(r => el('div', {class:'slot', style:'margin:.2rem 0'},
+    el('span', {}, r),
+    el('span', {},
+      el('button', {class:'btn small sec', style:'margin-right:.3rem', onclick: async () => {
+        const nu = prompt('Nuevo nombre para «' + r + '»:', r);
+        if (nu && nu !== r) { try { await api('/api/robot/rename', {old: r, new: nu}); toast('Renombrado'); viewAjustes(); } catch (e) { fail(e); } }
+      }}, 'Renombrar'),
+      el('button', {class:'btn small bad', onclick: async () => {
+        if (!confirm('¿Quitar «' + r + '» de la lista? Las recetas que lo usen quedarán sin robot.')) return;
+        try { await api('/api/robot/delete', {name: r}); toast('Quitado'); viewAjustes(); } catch (e) { fail(e); }
+      }}, 'Borrar')))) : [el('div', {class:'muted'}, 'Aún no hay robots. Añade el primero abajo.')]));
+}
+
+render();
+</script>
+</body>
+</html>
