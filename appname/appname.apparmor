@@ -1,4 +1,8 @@
 {
-    "policy_groups": [],
+    "policy_groups": [
+        "networking",
+        "webview",
+        "connectivity"
+    ],
     "policy_version": "$ENV{APPARMOR_POLICY}"
 }

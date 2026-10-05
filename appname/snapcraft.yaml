@@ -1,55 +1,52 @@
-name: appname
-version: 0.1
+name: recetario
+version: "1.0.0"
 base: core24
-summary: Recetario
-description: A short description of your app
+summary: Recetario y menú semanal
+description: |
+  Recetario para Ubuntu Touch: recetas, menú semanal y lista de la compra.
+  Los datos se guardan en la propia tablet y se pueden sincronizar con el
+  ordenador copiando la carpeta de datos.
+
 confinement: strict
 grade: stable
 
 platforms:
-  amd64:
   arm64:
-  armhf:
+  amd64:
 
 apps:
-  appname:
-    desktop: appname.desktop
-
+  recetario:
     command: usr/lib/qt5/bin/qmlscene $SNAP/qml/Main.qml
-
     command-chain:
       - bin/gpu-2404-wrapper
       - bin/lomiri-launch
     plugs:
       - opengl
       - wayland
-
-plugs:
-  lomiri-ui-toolkit:
-    interface: content
-    target: $SNAP/lomiri-ui-toolkit
-    default-provider: lomiri-ui-toolkit-core24
-  gpu-2404:
-    interface: content
-    target: $SNAP/gpu-2404
-    default-provider: mesa-2404
-
-layout:
-  /usr/share/X11/xkb:
-    symlink: $SNAP/lomiri-ui-toolkit/usr/share/X11/xkb
-  /usr/share/icons:
-    bind: $SNAP/lomiri-ui-toolkit/usr/share/icons
-  /usr/share/sounds:
-    bind: $SNAP/usr/share/sounds
+      - home
+      - network
+      - network-bind
+      - unity7
+      # Para leer y escribir en ~/Documents, que es la carpeta que la tablet
+      # expone por MTP: asi se copian las recetas desde el PC arrastrando
+      # la carpeta, sin tocar permisos rareos.
+      - personal-files:
+          read:
+            - ~/Documents
+          write:
+            - ~/Documents
+    environment:
+      QTWEBVIEW_DISABLE_SANDBOX: "1"
+      # En un snap $HOME es la carpeta privada del snap, no la del usuario,
+      # asi que se pone la ruta real (en Ubuntu Touch es phablet).
+      RECETARIO_DIR: "/home/phablet/Documents/Recetario"
 
 parts:
   main:
-
     plugin: cmake
+    source: .
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/
-
-    source: .
     build-snaps:
       - lomiri-ui-toolkit-core24
     build-packages:
@@ -58,12 +55,13 @@ parts:
       - qtdeclarative5-dev
       - qtquickcontrols2-5-dev
       - intltool
-
+      - qt5-webengine-dev-tools
     stage-packages:
       - qmlscene
-      - python3.12
+      - python3
       - qml-module-io-thp-pyotherside
-
+      - qml-module-qtwebview
+      - qml-module-lomiri-components
     override-prime: |
         craftctl default
         mkdir -p ${CRAFT_PRIME}/bin

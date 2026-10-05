@@ -1,6 +1,6 @@
 {
     "name": "appname.neus",
-    "description": "A short description of your app",
+    "description": "Recetario y menú semanal",
     "architecture": "$ENV{ARCH}",
     "title": "Recetario",
     "hooks": {
@@ -10,6 +10,6 @@
         }
     },
     "version": "1.0.0",
-    "maintainer": "Your FullName <email@domain.org>",
+    "maintainer": "Neus <neus@localhost>",
     "framework" : "$ENV{CLICK_FRAMEWORK}"
 }

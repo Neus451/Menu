@@ -23,13 +23,18 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manifest.json DESTINATION ${CMAKE_INST
 install(FILES ${PROJECT_NAME}.apparmor DESTINATION ${DATA_DIR})
 
 install(DIRECTORY assets DESTINATION ${DATA_DIR})
-install(DIRECTORY src DESTINATION ${DATA_DIR})
+# Los __pycache__ son bytecode de otra maquina: estorban y pueden hacer
+# que Python use una version antigua del codigo.
+install(DIRECTORY src DESTINATION ${DATA_DIR}
+        PATTERN "__pycache__" EXCLUDE)
 
 install(DIRECTORY qml DESTINATION ${DATA_DIR})
 
 # Translations
-file(GLOB_RECURSE I18N_SRC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/po qml/*.qml qml/*.js)
-list(APPEND I18N_SRC_FILES ${DESKTOP_FILE_NAME}.in.h)
+# Rutas absolutas: xgettext se ejecuta desde build/.../po y no encuentra
+# ficheros con rutas relativas.
+file(GLOB_RECURSE I18N_SRC_FILES qml/*.qml qml/*.js)
+list(APPEND I18N_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/${DESKTOP_FILE_NAME}.in.h)
 
 find_program(INTLTOOL_MERGE intltool-merge)
 if(NOT INTLTOOL_MERGE)
